@@ -7,8 +7,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import argrelmax
 import artifitial_gererator as gen
-from itertools import combinations
+from itertools import permutations, combinations_with_replacement, combinations, product
 from scipy.spatial.distance import mahalanobis
+
+
+def get_permutations_with_repit(string, N=3):
+    arr = []
+    for comb in combinations_with_replacement(string, N):
+        for perm in permutations(comb, N):
+            tmp_str = "" 
+            for tmp in perm:
+                tmp_str += tmp
+            arr.append(tmp_str)
+    arr = set(arr)
+    return arr
 
 def get_health_by_ecg(ecg, sampling_rate, dataset, verbose=True):
     th = 7 * np.median( np.abs(ecg) )
@@ -50,26 +62,24 @@ def get_health_by_ecg(ecg, sampling_rate, dataset, verbose=True):
             
         if (dR[idx] < 0 and dT[idx] < 0 and dalpha[idx] < 0):
             dcstr += "F"
-    #dcstr += "ABCDEF"
         
             
     #print (dcstr)
     codogram = dict()
     codogram_arr = np.array([])
-    idx = 0
+ 
     
-    
-    for codon in combinations(dcstr, 3):
-        key = codon[0] + codon[1] + codon[2]
-        codogram[key] = dcstr.count(key) / (dR.size - 3)
-        codogram_arr = np.append(codogram_arr, codogram[key])
-        print (idx)
-        if idx >= 215:
-            break
-        idx += 1
+    codons = get_permutations_with_repit("ABCDEF", 3)
+
+    for codon in codons:
+        codogram[codon] = dcstr.count(codon) / (dR.size - 3)
+        codogram_arr = np.append(codogram_arr, codogram[codon])
+
    
     Vinv = np.linalg.inv(np.cov(dataset.T))
-    health = mahalanobis(codogram_arr, np.mean(dataset, axis=0), Vinv)
+    mean_data = np.mean(dataset, axis=0)
+
+    health = mahalanobis(codogram_arr, mean_data, Vinv)
     
     if (verbose):
         t = np.linspace(0, length, ecg.size)
@@ -93,7 +103,7 @@ if __name__ == "__main__":
     sampling_rate = 500 # sample in sec
     datasetfile = "dataset.csv"
     ecg = gen.get_ecg(length, sampling_rate)
-    dataset = np.loadtxt(datasetfile, delimiter=",") / 99
+    dataset = np.loadtxt(datasetfile, delimiter=",") / 597
     
     health = get_health_by_ecg(ecg, sampling_rate, dataset)
     print (health)
