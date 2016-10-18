@@ -23,6 +23,7 @@ def get_permutations_with_repit(string, N=3):
     return arr
 
 def get_health_by_ecg(ecg, sampling_rate, dataset, verbose=True):
+    ecg = np.asarray(ecg).astype(float)
     th = 7 * np.median( np.abs(ecg) )
     # out = ecg.ecg(signal=ecg_signal, sampling_rate=1000., show=True)
     
