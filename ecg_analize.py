@@ -19,7 +19,7 @@ def get_permutations_with_repit(string, N=3):
             for tmp in perm:
                 tmp_str += tmp
             arr.append(tmp_str)
-    arr = set(arr)
+    arr = sorted( set(arr) )
     return arr
 
 def get_health_by_ecg(ecg, sampling_rate, dataset, verbose=True):
